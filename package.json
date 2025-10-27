@@ -9,16 +9,40 @@
   "scripts": {
     "build": "tsc && chmod 755 build/index.js build/cli.js",
     "start": "node build/index.js",
-    "cli": "node build/cli.js"
+    "cli": "node build/cli.js",
+    "postinstall": "node build/setup-claude-config.js"
   },
   "files": [
-    "build"
+    "build",
+    "README.md",
+    "LICENSE.md"
   ],
-  "main": "index.js",
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "MCP server for logging and retrieving memories",
+  "main": "build/index.js",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "memory",
+    "llm",
+    "claude",
+    "chatgpt",
+    "mongodb",
+    "context-caching",
+    "shared-memories"
+  ],
+  "author": "James Sangalli",
+  "license": "MIT",
+  "description": "MCP server for logging and retrieving memories with context window caching and shared memories",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JamesANZ/memory-mcp.git"
+  },
+  "homepage": "https://github.com/JamesANZ/memory-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/JamesANZ/memory-mcp/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.15.0",
     "mongodb": "^6.3.0",
