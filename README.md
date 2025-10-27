@@ -17,6 +17,16 @@ A Model Context Protocol (MCP) server for logging and retrieving memories from L
 
 ## Installation
 
+### Option 1: Install from npm (Recommended)
+
+```bash
+npm install -g @jamesanz/memory-mcp
+```
+
+The package will automatically configure Claude Desktop on installation.
+
+### Option 2: Install from source
+
 1. Install dependencies:
 
 ```bash
