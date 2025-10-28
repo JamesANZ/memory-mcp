@@ -15,10 +15,7 @@ import {
   getConversationSummaries,
   searchContextByTags,
 } from "./db.js";
-import {
-  Memory,
-  ContextItem,
-} from "./types.js";
+import { Memory, ContextItem } from "./types.js";
 
 const server = new McpServer({
   name: "memory-mcp",

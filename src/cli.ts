@@ -21,7 +21,7 @@ class ConversationCLI {
   async start() {
     console.log("🧠 Memory MCP Conversation Orchestrator");
     console.log("========================================\n");
-    
+
     await connect();
     console.log("✅ Connected to database\n");
 
@@ -32,7 +32,9 @@ class ConversationCLI {
   private showHelp() {
     console.log("Available commands:");
     console.log("  add <message>     - Add a message to the conversation");
-    console.log("  status            - Show conversation status and recommendations");
+    console.log(
+      "  status            - Show conversation status and recommendations",
+    );
     console.log("  archive           - Manually trigger archiving");
     console.log("  retrieve          - Manually trigger retrieval");
     console.log("  summary <text>    - Create a summary of archived content");
@@ -81,7 +83,9 @@ class ConversationCLI {
             rl.close();
             return;
           default:
-            console.log("❌ Unknown command. Type 'help' for available commands.");
+            console.log(
+              "❌ Unknown command. Type 'help' for available commands.",
+            );
         }
       } catch (error: any) {
         console.error("❌ Error:", error.message);
@@ -98,51 +102,72 @@ class ConversationCLI {
     }
 
     console.log(`📝 Adding message: "${message}"`);
-    
+
     const result = await this.orchestrator.addMessage(
       this.currentConversationId,
       message,
       this.llm,
     );
 
-    console.log(`📊 Context usage: ${result.state.totalWordCount}/${result.state.maxWordCount} words`);
+    console.log(
+      `📊 Context usage: ${result.state.totalWordCount}/${result.state.maxWordCount} words`,
+    );
 
     if (result.archiveDecision?.shouldArchive) {
       console.log(`🔄 ${result.archiveDecision.reason}`);
-      console.log(`📦 Archiving ${result.archiveDecision.messagesToArchive.length} messages with tags: ${result.archiveDecision.tags.join(", ")}`);
-      
-      await this.orchestrator.executeArchive(result.archiveDecision, result.state);
+      console.log(
+        `📦 Archiving ${result.archiveDecision.messagesToArchive.length} messages with tags: ${result.archiveDecision.tags.join(", ")}`,
+      );
+
+      await this.orchestrator.executeArchive(
+        result.archiveDecision,
+        result.state,
+      );
     }
 
     if (result.retrievalDecision?.shouldRetrieve) {
       console.log(`🔍 ${result.retrievalDecision.reason}`);
-      console.log(`📥 Retrieving ${result.retrievalDecision.contextToRetrieve.length} relevant items`);
-      
-      await this.orchestrator.executeRetrieval(result.retrievalDecision, result.state);
+      console.log(
+        `📥 Retrieving ${result.retrievalDecision.contextToRetrieve.length} relevant items`,
+      );
+
+      await this.orchestrator.executeRetrieval(
+        result.retrievalDecision,
+        result.state,
+      );
     }
   }
 
   private async handleStatus() {
-    const status = await this.orchestrator.getConversationStatus(this.currentConversationId);
+    const status = await this.orchestrator.getConversationStatus(
+      this.currentConversationId,
+    );
     const usageRatio = status.state.totalWordCount / status.state.maxWordCount;
-    
+
     console.log(`\n📊 Conversation Status: ${this.currentConversationId}`);
-    console.log(`   Current context: ${status.state.currentContext.length} messages`);
-    console.log(`   Word count: ${status.state.totalWordCount}/${status.state.maxWordCount} (${(usageRatio * 100).toFixed(1)}%)`);
+    console.log(
+      `   Current context: ${status.state.currentContext.length} messages`,
+    );
+    console.log(
+      `   Word count: ${status.state.totalWordCount}/${status.state.maxWordCount} (${(usageRatio * 100).toFixed(1)}%)`,
+    );
     console.log(`   LLM: ${status.state.llm}`);
-    
+
     if (status.recommendations.length > 0) {
       console.log("\n💡 Recommendations:");
-      status.recommendations.forEach(rec => console.log(`   ${rec}`));
+      status.recommendations.forEach((rec) => console.log(`   ${rec}`));
     }
-    
+
     console.log("");
   }
 
   private async handleArchive() {
-    const state = await this.orchestrator.initializeConversation(this.currentConversationId, this.llm);
+    const state = await this.orchestrator.initializeConversation(
+      this.currentConversationId,
+      this.llm,
+    );
     const decision = await this.orchestrator["shouldArchive"](state);
-    
+
     if (decision.shouldArchive) {
       console.log(`🔄 ${decision.reason}`);
       await this.orchestrator.executeArchive(decision, state);
@@ -152,9 +177,12 @@ class ConversationCLI {
   }
 
   private async handleRetrieve() {
-    const state = await this.orchestrator.initializeConversation(this.currentConversationId, this.llm);
+    const state = await this.orchestrator.initializeConversation(
+      this.currentConversationId,
+      this.llm,
+    );
     const decision = await this.orchestrator["shouldRetrieve"](state);
-    
+
     if (decision.shouldRetrieve) {
       console.log(`🔍 ${decision.reason}`);
       await this.orchestrator.executeRetrieval(decision, state);
@@ -187,7 +215,7 @@ class ConversationCLI {
       console.log("📝 No active conversations");
     } else {
       console.log("📝 Active conversations:");
-      conversations.forEach(id => {
+      conversations.forEach((id) => {
         const marker = id === this.currentConversationId ? "→ " : "  ";
         console.log(`${marker}${id}`);
       });

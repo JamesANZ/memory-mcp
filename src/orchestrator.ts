@@ -4,22 +4,15 @@ import {
   retrieveContext,
   scoreRelevance,
   createSummary,
-  getConversationSummaries,
 } from "./db.js";
 import {
-  Memory,
   ConversationState,
   ArchiveDecision,
   RetrievalDecision,
 } from "./types.js";
 
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017";
-const DATABASE_NAME = "memory_mcp";
-const COLLECTION_NAME = "memories";
-
 export class ConversationOrchestrator {
   private conversations: Map<string, ConversationState> = new Map();
-  private readonly DEFAULT_MAX_WORDS = 8000; // Conservative limit
   private readonly ARCHIVE_THRESHOLD = 0.8; // Archive when 80% full
   private readonly RETRIEVE_THRESHOLD = 0.3; // Retrieve when 30% full
 
@@ -65,7 +58,11 @@ export class ConversationOrchestrator {
     archiveDecision?: ArchiveDecision;
     retrievalDecision?: RetrievalDecision;
   }> {
-    const state = await this.initializeConversation(conversationId, llm, userId);
+    const state = await this.initializeConversation(
+      conversationId,
+      llm,
+      userId,
+    );
 
     // Add message to current context
     state.currentContext.push(message);
@@ -83,15 +80,25 @@ export class ConversationOrchestrator {
   /**
    * Determine if content should be archived
    */
-  private async shouldArchive(state: ConversationState): Promise<ArchiveDecision> {
+  private async shouldArchive(
+    state: ConversationState,
+  ): Promise<ArchiveDecision> {
     const usageRatio = state.totalWordCount / state.maxWordCount;
 
     if (usageRatio < this.ARCHIVE_THRESHOLD) {
-      return { shouldArchive: false, messagesToArchive: [], tags: [], reason: "Below archive threshold" };
+      return {
+        shouldArchive: false,
+        messagesToArchive: [],
+        tags: [],
+        reason: "Below archive threshold",
+      };
     }
 
     // Archive oldest messages (first 30% of current context)
-    const messagesToArchive = state.currentContext.slice(0, Math.floor(state.currentContext.length * 0.3));
+    const messagesToArchive = state.currentContext.slice(
+      0,
+      Math.floor(state.currentContext.length * 0.3),
+    );
     const tags = this.generateTags(messagesToArchive);
 
     return {
@@ -105,11 +112,17 @@ export class ConversationOrchestrator {
   /**
    * Determine if archived content should be retrieved
    */
-  private async shouldRetrieve(state: ConversationState): Promise<RetrievalDecision> {
+  private async shouldRetrieve(
+    state: ConversationState,
+  ): Promise<RetrievalDecision> {
     const usageRatio = state.totalWordCount / state.maxWordCount;
 
     if (usageRatio > this.RETRIEVE_THRESHOLD) {
-      return { shouldRetrieve: false, contextToRetrieve: [], reason: "Above retrieve threshold" };
+      return {
+        shouldRetrieve: false,
+        contextToRetrieve: [],
+        reason: "Above retrieve threshold",
+      };
     }
 
     // Score relevance of archived content
@@ -125,7 +138,11 @@ export class ConversationOrchestrator {
     );
 
     if (relevantContext.length === 0) {
-      return { shouldRetrieve: false, contextToRetrieve: [], reason: "No relevant archived content found" };
+      return {
+        shouldRetrieve: false,
+        contextToRetrieve: [],
+        reason: "No relevant archived content found",
+      };
     }
 
     return {
@@ -138,7 +155,10 @@ export class ConversationOrchestrator {
   /**
    * Execute archiving decision
    */
-  async executeArchive(decision: ArchiveDecision, state: ConversationState): Promise<void> {
+  async executeArchive(
+    decision: ArchiveDecision,
+    state: ConversationState,
+  ): Promise<void> {
     if (!decision.shouldArchive) return;
 
     // Archive the messages
@@ -156,16 +176,23 @@ export class ConversationOrchestrator {
       0,
     );
 
-    state.currentContext = state.currentContext.slice(decision.messagesToArchive.length);
+    state.currentContext = state.currentContext.slice(
+      decision.messagesToArchive.length,
+    );
     state.totalWordCount -= archivedWordCount;
 
-    console.log(`Archived ${archivedCount} messages for conversation ${state.conversationId}`);
+    console.log(
+      `Archived ${archivedCount} messages for conversation ${state.conversationId}`,
+    );
   }
 
   /**
    * Execute retrieval decision
    */
-  async executeRetrieval(decision: RetrievalDecision, state: ConversationState): Promise<void> {
+  async executeRetrieval(
+    decision: RetrievalDecision,
+    state: ConversationState,
+  ): Promise<void> {
     if (!decision.shouldRetrieve) return;
 
     // Add retrieved context to current context
@@ -175,7 +202,9 @@ export class ConversationOrchestrator {
       state.totalWordCount += this.getWordCount(content);
     }
 
-    console.log(`Retrieved ${decision.contextToRetrieve.length} items for conversation ${state.conversationId}`);
+    console.log(
+      `Retrieved ${decision.contextToRetrieve.length} items for conversation ${state.conversationId}`,
+    );
   }
 
   /**
@@ -191,7 +220,12 @@ export class ConversationOrchestrator {
     if (!state) throw new Error(`Conversation ${conversationId} not found`);
 
     // Get archived items to summarize
-    const archivedItems = await retrieveContext(conversationId, undefined, 0.1, 10);
+    const archivedItems = await retrieveContext(
+      conversationId,
+      undefined,
+      0.1,
+      10,
+    );
 
     if (archivedItems.length === 0) {
       throw new Error("No archived items to summarize");
@@ -206,7 +240,9 @@ export class ConversationOrchestrator {
       userId,
     );
 
-    console.log(`Created summary ${summaryId} for conversation ${conversationId}`);
+    console.log(
+      `Created summary ${summaryId} for conversation ${conversationId}`,
+    );
   }
 
   /**
@@ -223,15 +259,23 @@ export class ConversationOrchestrator {
     const recommendations: string[] = [];
 
     if (usageRatio > 0.9) {
-      recommendations.push("⚠️ Context window nearly full - consider archiving more content");
+      recommendations.push(
+        "⚠️ Context window nearly full - consider archiving more content",
+      );
     } else if (usageRatio > 0.7) {
-      recommendations.push("📝 Consider archiving older messages to free up space");
+      recommendations.push(
+        "📝 Consider archiving older messages to free up space",
+      );
     } else if (usageRatio < 0.2) {
-      recommendations.push("🔍 Context window has space - consider retrieving relevant archived content");
+      recommendations.push(
+        "🔍 Context window has space - consider retrieving relevant archived content",
+      );
     }
 
     if (state.archivedContext.length > 20) {
-      recommendations.push("📋 Consider creating summaries of archived content");
+      recommendations.push(
+        "📋 Consider creating summaries of archived content",
+      );
     }
 
     return { state, recommendations };
@@ -246,9 +290,27 @@ export class ConversationOrchestrator {
 
     // Simple keyword-based tagging
     const keywords = [
-      "code", "programming", "technical", "api", "database", "frontend", "backend",
-      "design", "ui", "ux", "user", "interface", "data", "analysis", "research",
-      "writing", "content", "creative", "business", "strategy", "planning",
+      "code",
+      "programming",
+      "technical",
+      "api",
+      "database",
+      "frontend",
+      "backend",
+      "design",
+      "ui",
+      "ux",
+      "user",
+      "interface",
+      "data",
+      "analysis",
+      "research",
+      "writing",
+      "content",
+      "creative",
+      "business",
+      "strategy",
+      "planning",
     ];
 
     for (const keyword of keywords) {
@@ -289,4 +351,8 @@ export class ConversationOrchestrator {
 }
 
 // Re-export types for convenience
-export { ConversationState, ArchiveDecision, RetrievalDecision } from "./types.js";
+export {
+  ConversationState,
+  ArchiveDecision,
+  RetrievalDecision,
+} from "./types.js";
