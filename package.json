@@ -1,6 +1,6 @@
 {
   "name": "@jamesanz/memory-mcp",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "type": "module",
   "bin": {
     "memory-mcp": "./build/index.js",
