@@ -10,7 +10,8 @@
     "build": "tsc && chmod 755 build/index.js build/cli.js",
     "start": "node build/index.js",
     "cli": "node build/cli.js",
-    "postinstall": "node build/setup-claude-config.js"
+    "postinstall": "node build/setup-claude-config.js",
+    "generate-cursor-link": "node scripts/generate-cursor-install-link.js"
   },
   "files": [
     "build",

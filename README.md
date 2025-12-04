@@ -18,6 +18,16 @@ A Model Context Protocol (MCP) server for logging and retrieving memories from L
 
 ## Installation
 
+### Installing in Cursor
+
+You can install this MCP server directly in Cursor using the one-click install link:
+
+**🔗 [Install in Cursor](cursor://anysphere.cursor-deeplink/mcp/install?name=memory-mcp&config=eyJtZW1vcnktbWNwIjp7ImNvbW1hbmQiOiJucHgiLCJhcmdzIjpbIi15IiwiQGphbWVzYW56L21lbW9yeS1tY3AiXX19)**
+
+This will automatically configure the MCP server using `npx`. After installation, you'll need to configure your MongoDB connection string in Cursor settings (see Configuration section below).
+
+**Generate a new install link:** Run `npm run generate-cursor-link` to generate a fresh install link with the latest configuration.
+
 ### Option 1: Install from npm (Recommended)
 
 ```bash
