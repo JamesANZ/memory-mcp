@@ -24,6 +24,10 @@ You can install this MCP server directly in Cursor using the one-click install l
 
 **🔗 [Install in Cursor](cursor://anysphere.cursor-deeplink/mcp/install?name=memory-mcp&config=eyJtZW1vcnktbWNwIjp7ImNvbW1hbmQiOiJucHgiLCJhcmdzIjpbIi15IiwiQGphbWVzYW56L21lbW9yeS1tY3AiXX19)**
 
+```
+cursor://anysphere.cursor-deeplink/mcp/install?name=memory-mcp&config=eyJtZW1vcnktbWNwIjp7ImNvbW1hbmQiOiJucHgiLCJhcmdzIjpbIi15IiwiQGphbWVzYW56L21lbW9yeS1tY3AiXX19
+```
+
 This will automatically configure the MCP server using `npx`. After installation, you'll need to configure your MongoDB connection string in Cursor settings (see Configuration section below).
 
 ### Option 1: Install from npm (Recommended)
