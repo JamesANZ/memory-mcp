@@ -26,8 +26,6 @@ You can install this MCP server directly in Cursor using the one-click install l
 
 This will automatically configure the MCP server using `npx`. After installation, you'll need to configure your MongoDB connection string in Cursor settings (see Configuration section below).
 
-**Generate a new install link:** Run `npm run generate-cursor-link` to generate a fresh install link with the latest configuration.
-
 ### Option 1: Install from npm (Recommended)
 
 ```bash
