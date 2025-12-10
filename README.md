@@ -1,60 +1,106 @@
-# Memory MCP
+# 🧠 Memory MCP Server
+
+> **Persistent memory and context window caching for LLM conversations.** Save, retrieve, and manage memories with intelligent context archiving. MongoDB-backed storage.
+
+An [MCP (Model Context Protocol)](https://modelcontextprotocol.io) server that provides memory management and context window caching for AI coding environments like Cursor and Claude Desktop.
 
 [![Trust Score](https://archestra.ai/mcp-catalog/api/badge/quality/JamesANZ/memory-mcp)](https://archestra.ai/mcp-catalog/jamesanz__memory-mcp)
 
-A Model Context Protocol (MCP) server for logging and retrieving memories from LLM conversations with intelligent context window caching capabilities.
+## Why Use Memory MCP?
+
+- 💾 **Persistent Storage** – MongoDB-backed memory that survives sessions
+- 🧠 **Context Caching** – Intelligent archiving and retrieval of conversation context
+- 🏷️ **Tag-based Search** – Organize and find memories by tags
+- 📊 **Relevance Scoring** – Automatically score archived content relevance
+- ⚡ **Easy Setup** – One-click install in Cursor or simple manual setup
+
+## Quick Start
+
+Ready to add memory to your AI workflow? Install in seconds:
+
+**Install in Cursor (Recommended):**
+
+[🔗 Install in Cursor](cursor://anysphere.cursor-deeplink/mcp/install?name=memory-mcp&config=eyJtZW1vcnktbWNwIjp7ImNvbW1hbmQiOiJucHgiLCJhcmdzIjpbIi15IiwiQGphbWVzYW56L21lbW9yeS1tY3AiXX19)
+
+**Or install manually:**
+
+```bash
+npm install -g @jamesanz/memory-mcp
+# Or from source:
+git clone https://github.com/JamesANZ/memory-mcp.git
+cd memory-mcp && npm install && npm run build
+```
 
 ## Features
 
-- **Save Memories**: Store memories from LLM conversations with timestamps and LLM identification
-- **Retrieve Memories**: Get all stored memories with detailed metadata
-- **Add Memories**: Append new memories without overwriting existing ones
-- **Clear Memories**: Remove all stored memories
-- **Context Window Caching**: Archive, retrieve, and summarize conversation context
-- **Relevance Scoring**: Automatically score archived content relevance to current context
-- **Tag-based Search**: Categorize and search context by tags
-- **Conversation Orchestration**: External system to manage context window caching
-- **MongoDB Storage**: Persistent storage using MongoDB database
+### Basic Memory Tools
+- **`save-memories`** – Save memories to database (overwrites existing)
+- **`get-memories`** – Retrieve all stored memories
+- **`add-memories`** – Append new memories without overwriting
+- **`clear-memories`** – Remove all stored memories
+
+### Context Window Caching
+- **`archive-context`** – Archive conversation context with tags
+- **`retrieve-context`** – Retrieve relevant archived context
+- **`score-relevance`** – Score archived content relevance
+- **`create-summary`** – Create summaries of archived content
+- **`get-conversation-summaries`** – Get all summaries for a conversation
+- **`search-context-by-tags`** – Search archived content by tags
 
 ## Installation
 
-### Installing in Cursor
+### Cursor (One-Click)
 
-You can install this MCP server directly in Cursor using the one-click install link:
-
-**🔗 [Install in Cursor](cursor://anysphere.cursor-deeplink/mcp/install?name=memory-mcp&config=eyJtZW1vcnktbWNwIjp7ImNvbW1hbmQiOiJucHgiLCJhcmdzIjpbIi15IiwiQGphbWVzYW56L21lbW9yeS1tY3AiXX19)**
+Click the install link above or use:
 
 ```
 cursor://anysphere.cursor-deeplink/mcp/install?name=memory-mcp&config=eyJtZW1vcnktbWNwIjp7ImNvbW1hbmQiOiJucHgiLCJhcmdzIjpbIi15IiwiQGphbWVzYW56L21lbW9yeS1tY3AiXX19
 ```
 
-This will automatically configure the MCP server using `npx`. After installation, you'll need to configure your MongoDB connection string in Cursor settings (see Configuration section below).
+### Manual Installation
 
-### Option 1: Install from npm (Recommended)
-
-```bash
-npm install -g @jamesanz/memory-mcp
-```
-
-The package will automatically configure Claude Desktop on installation.
-
-### Option 2: Install from source
-
-1. Install dependencies:
+**Requirements:** Node.js 18+, npm, MongoDB
 
 ```bash
+# Clone and build
+git clone https://github.com/JamesANZ/memory-mcp.git
+cd memory-mcp
 npm install
-```
-
-2. Build the project:
-
-```bash
 npm run build
+
+# Set MongoDB connection string
+export MONGODB_URI="mongodb://localhost:27017"
+
+# Run server
+npm start
 ```
+
+### Claude Desktop
+
+Add to `claude_desktop_config.json`:
+
+**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`  
+**Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "memory-mcp": {
+      "command": "node",
+      "args": ["/absolute/path/to/memory-mcp/build/index.js"],
+      "env": {
+        "MONGODB_URI": "mongodb://localhost:27017"
+      }
+    }
+  }
+}
+```
+
+Restart Claude Desktop after configuration.
 
 ## Configuration
 
-Set the MongoDB connection string via environment variable:
+Set the MongoDB connection string:
 
 ```bash
 export MONGODB_URI="mongodb://localhost:27017"
@@ -62,259 +108,104 @@ export MONGODB_URI="mongodb://localhost:27017"
 
 Default: `mongodb://localhost:27017`
 
-## Usage
+## Usage Examples
 
-### Running the MCP Server
+### Save Memories
+Store memories from a conversation:
 
-Start the MCP server:
-
-```bash
-npm start
-```
-
-### Running the Conversation Orchestrator Demo
-
-Try the interactive CLI demo:
-
-```bash
-npm run cli
-```
-
-The CLI demo allows you to:
-
-- Add messages to simulate conversation
-- See automatic archiving when context gets full
-- Trigger manual archiving and retrieval
-- Create summaries of archived content
-- Monitor conversation status and get recommendations
-
-### Basic Memory Tools
-
-1. **save-memories**: Save all memories to the database, overwriting existing ones
-   - `memories`: Array of memory strings to save
-   - `llm`: Name of the LLM (e.g., 'chatgpt', 'claude')
-   - `userId`: Optional user identifier
-
-2. **get-memories**: Retrieve all memories from the database
-   - No parameters required
-
-3. **add-memories**: Add new memories to the database without overwriting existing ones
-   - `memories`: Array of memory strings to add
-   - `llm`: Name of the LLM (e.g., 'chatgpt', 'claude')
-   - `userId`: Optional user identifier
-
-4. **clear-memories**: Clear all memories from the database
-   - No parameters required
-
-### Context Window Caching Tools
-
-5. **archive-context**: Archive context messages for a conversation with tags and metadata
-   - `conversationId`: Unique identifier for the conversation
-   - `contextMessages`: Array of context messages to archive
-   - `tags`: Tags for categorizing the archived content
-   - `llm`: Name of the LLM (e.g., 'chatgpt', 'claude')
-   - `userId`: Optional user identifier
-
-6. **retrieve-context**: Retrieve relevant archived context for a conversation
-   - `conversationId`: Unique identifier for the conversation
-   - `tags`: Optional tags to filter by
-   - `minRelevanceScore`: Minimum relevance score (0-1, default: 0.1)
-   - `limit`: Maximum number of items to return (default: 10)
-
-7. **score-relevance**: Score the relevance of archived context against current conversation context
-   - `conversationId`: Unique identifier for the conversation
-   - `currentContext`: Current conversation context to compare against
-   - `llm`: Name of the LLM (e.g., 'chatgpt', 'claude')
-
-8. **create-summary**: Create a summary of context items and link them to the summary
-   - `conversationId`: Unique identifier for the conversation
-   - `contextItems`: Context items to summarize
-   - `summaryText`: Human-provided summary text
-   - `llm`: Name of the LLM (e.g., 'chatgpt', 'claude')
-   - `userId`: Optional user identifier
-
-9. **get-conversation-summaries**: Get all summaries for a specific conversation
-   - `conversationId`: Unique identifier for the conversation
-
-10. **search-context-by-tags**: Search archived context and summaries by tags
-    - `tags`: Tags to search for
-
-### Example Usage in LLM
-
-#### Basic Memory Operations
-
-1. **Save all memories** (overwrites existing):
-
-   ```
-   User: "Save all my memories from this conversation to the MCP server"
-   LLM: [Uses save-memories tool with current conversation memories]
-   ```
-
-2. **Retrieve all memories**:
-   ```
-   User: "Get all my memories from the MCP server"
-   LLM: [Uses get-memories tool to retrieve stored memories]
-   ```
-
-#### Context Window Caching Workflow
-
-1. **Archive context when window gets full**:
-
-   ```
-   User: "The conversation is getting long, archive the early parts"
-   LLM: [Uses archive-context tool to store old messages with tags]
-   ```
-
-2. **Score relevance of archived content**:
-
-   ```
-   User: "How relevant is the archived content to our current discussion?"
-   LLM: [Uses score-relevance tool to evaluate archived content]
-   ```
-
-3. **Retrieve relevant archived context**:
-
-   ```
-   User: "Bring back the relevant archived information"
-   LLM: [Uses retrieve-context tool to get relevant archived content]
-   ```
-
-4. **Create summaries for long conversations**:
-   ```
-   User: "Summarize the early parts of our conversation"
-   LLM: [Uses create-summary tool to condense archived content]
-   ```
-
-## Conversation Orchestration System
-
-The `ConversationOrchestrator` class provides automatic context window management:
-
-### Key Features
-
-- **Automatic Archiving**: Archives content when context usage reaches 80%
-- **Intelligent Retrieval**: Retrieves relevant content when usage drops below 30%
-- **Relevance Scoring**: Uses keyword overlap to score archived content relevance
-- **Smart Tagging**: Automatically generates tags based on content keywords
-- **Conversation State Management**: Tracks active conversations and their context
-- **Recommendations**: Provides suggestions for optimal context management
-
-### Usage Example
-
-```typescript
-import { ConversationOrchestrator } from "./orchestrator.js";
-
-const orchestrator = new ConversationOrchestrator(8000); // 8k word limit
-
-// Add a message (triggers automatic archiving/retrieval)
-const result = await orchestrator.addMessage(
-  "conversation-123",
-  "This is a new message in the conversation",
-  "claude",
-);
-
-// Check if archiving is needed
-if (result.archiveDecision?.shouldArchive) {
-  await orchestrator.executeArchive(result.archiveDecision, result.state);
-}
-
-// Check if retrieval is needed
-if (result.retrievalDecision?.shouldRetrieve) {
-  await orchestrator.executeRetrieval(result.retrievalDecision, result.state);
+```json
+{
+  "tool": "save-memories",
+  "arguments": {
+    "memories": ["User prefers TypeScript", "User works on blockchain projects"],
+    "llm": "claude",
+    "userId": "user123"
+  }
 }
 ```
 
-## Database Schema
+### Retrieve Memories
+Get all stored memories:
 
-### Basic Memory Structure
-
-```typescript
-type BasicMemory = {
-  _id: ObjectId;
-  memories: string[]; // Array of memory strings
-  timestamp: Date; // When memories were saved
-  llm: string; // LLM identifier (e.g., 'chatgpt', 'claude')
-  userId?: string; // Optional user identifier
-};
+```json
+{
+  "tool": "get-memories",
+  "arguments": {}
+}
 ```
 
-### Extended Memory Structure (Context Caching)
+### Archive Context
+Archive conversation context when it gets too long:
 
-```typescript
-type ExtendedMemory = {
-  _id: ObjectId;
-  memories: string[]; // Array of memory strings
-  timestamp: Date; // When memories were saved
-  llm: string; // LLM identifier
-  userId?: string; // Optional user identifier
-  conversationId?: string; // Unique conversation identifier
-  contextType?: "active" | "archived" | "summary";
-  relevanceScore?: number; // 0-1 relevance score
-  tags?: string[]; // Categorization tags
-  parentContextId?: ObjectId; // Reference to original content for summaries
-  messageIndex?: number; // Order within conversation
-  wordCount?: number; // Size tracking
-  summaryText?: string; // Condensed version
-};
+```json
+{
+  "tool": "archive-context",
+  "arguments": {
+    "conversationId": "conv-123",
+    "contextMessages": ["Message 1", "Message 2"],
+    "tags": ["coding", "typescript"],
+    "llm": "claude"
+  }
+}
 ```
 
-## Context Window Caching Workflow
+### Retrieve Relevant Context
+Get archived content relevant to current conversation:
 
-The orchestration system automatically:
-
-1. **Monitors conversation length** and context usage
-2. **Archives content** when context usage reaches 80%
-3. **Scores relevance** of archived content against current context
-4. **Retrieves relevant content** when usage drops below 30%
-5. **Creates summaries** to condense very long conversations
-
-### Key Features
-
-- **Conversation Grouping**: All archived content is linked to specific conversation IDs
-- **Relevance Scoring**: Simple keyword overlap scoring (can be enhanced with semantic similarity)
-- **Tag-based Organization**: Categorize content for easy retrieval
-- **Summary Linking**: Preserve links between summaries and original content
-- **Backward Compatibility**: All existing memory functions work unchanged
-- **Automatic Management**: No manual intervention required for basic operations
-
-## Development
-
-To run in development mode:
-
-```bash
-npm run build
-node build/index.js
+```json
+{
+  "tool": "retrieve-context",
+  "arguments": {
+    "conversationId": "conv-123",
+    "tags": ["coding"],
+    "minRelevanceScore": 0.5,
+    "limit": 10
+  }
+}
 ```
 
-To run the CLI demo:
+## Context Window Caching
 
-```bash
-npm run cli
-```
+The system automatically:
+- **Archives content** when context usage reaches 80%
+- **Retrieves relevant content** when usage drops below 30%
+- **Scores relevance** using keyword overlap
+- **Creates summaries** to condense long conversations
 
-## Donate
+## Use Cases
 
-If you find this project useful, consider supporting it with Bitcoin:
+- **Long Conversations** – Manage context windows for extended sessions
+- **Memory Persistence** – Save important information across sessions
+- **Context Retrieval** – Bring back relevant past conversations
+- **Research Projects** – Organize and tag research conversations
 
-**⚡ Lightning Network**
+## Technical Details
 
-<img src="https://raw.githubusercontent.com/bitcoinwarrior1/CitySats/main/public/lightning.jpeg" alt="Lightning QR Code" width="120" />
+**Built with:** Node.js, TypeScript, MCP SDK, MongoDB  
+**Dependencies:** `@modelcontextprotocol/sdk`, `mongodb`, `zod`  
+**Platforms:** macOS, Windows, Linux
 
-<code>lnbc1pjhhsqepp5mjgwnvg0z53shm22hfe9us289lnaqkwv8rn2s0rtekg5vvj56xnqdqqcqzzsxqyz5vqsp5gu6vh9hyp94c7t3tkpqrp2r059t4vrw7ps78a4n0a2u52678c7yq9qyyssq7zcferywka50wcy75skjfrdrk930cuyx24rg55cwfuzxs49rc9c53mpz6zug5y2544pt8y9jflnq0ltlha26ed846jh0y7n4gm8jd3qqaautqa</code>
+**Storage:** MongoDB (default: `mongodb://localhost:27017`)
 
-**₿ On-Chain**
+## Contributing
 
-<img src="https://raw.githubusercontent.com/bitcoinwarrior1/CitySats/main/public/onchain.jpg" alt="Bitcoin Address QR Code" width="120" />
+⭐ **If this project helps you, please star it on GitHub!** ⭐
 
-<code>[bc1ptzvr93pn959xq4et6sqzpfnkk2args22ewv5u2th4ps7hshfaqrshe0xtp](https://mempool.space/address/bc1ptzvr93pn959xq4et6sqzpfnkk2args22ewv5u2th4ps7hshfaqrshe0xtp)</code>
-
-**Ξ Ethereum / EVM Networks**
-
-<img src="https://raw.githubusercontent.com/bitcoinwarrior1/CitySats/main/public/ethereum.jpg" alt="Ethereum Address QR Code" width="120" />
-
-<code>[0x42ea529282DDE0AA87B42d9E83316eb23FE62c3f](https://etherscan.io/address/0x42ea529282DDE0AA87B42d9E83316eb23FE62c3f)</code>
-
-*Donations from any EVM-compatible network (Ethereum, Polygon, Arbitrum, Optimism, BSC, Avalanche, etc.) will work perfectly! You can also send tokens like USDT, USDC, DAI, and other ERC-20 tokens to this address.*
+Contributions welcome! Please open an issue or submit a pull request.
 
 ## License
 
 ISC
+
+## Support
+
+If you find this project useful, consider supporting it:
+
+**⚡ Lightning Network**
+```
+lnbc1pjhhsqepp5mjgwnvg0z53shm22hfe9us289lnaqkwv8rn2s0rtekg5vvj56xnqdqqcqzzsxqyz5vqsp5gu6vh9hyp94c7t3tkpqrp2r059t4vrw7ps78a4n0a2u52678c7yq9qyyssq7zcferywka50wcy75skjfrdrk930cuyx24rg55cwfuzxs49rc9c53mpz6zug5y2544pt8y9jflnq0ltlha26ed846jh0y7n4gm8jd3qqaautqa
+```
+
+**₿ Bitcoin**: [bc1ptzvr93pn959xq4et6sqzpfnkk2args22ewv5u2th4ps7hshfaqrshe0xtp](https://mempool.space/address/bc1ptzvr93pn959xq4et6sqzpfnkk2args22ewv5u2th4ps7hshfaqrshe0xtp)
+
+**Ξ Ethereum/EVM**: [0x42ea529282DDE0AA87B42d9E83316eb23FE62c3f](https://etherscan.io/address/0x42ea529282DDE0AA87B42d9E83316eb23FE62c3f)
