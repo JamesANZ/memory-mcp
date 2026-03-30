@@ -31,6 +31,10 @@ git clone https://github.com/JamesANZ/memory-mcp.git
 cd memory-mcp && npm install && npm run build
 ```
 
+## Hosted deployment
+
+A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/jamesanz-memory-mcp).
+
 ## Features
 
 ### Basic Memory Tools
