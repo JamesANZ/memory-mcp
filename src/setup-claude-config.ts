@@ -1,60 +1,76 @@
 #!/usr/bin/env node
 
 import { writeFileSync, mkdirSync, existsSync, readFileSync } from "fs";
-import { join } from "path";
-import { homedir } from "os";
+import { join, dirname } from "path";
+import { homedir, platform } from "os";
 
-const CONFIG_DIR = join(homedir(), ".config", "claude");
-const CONFIG_FILE = join(CONFIG_DIR, "claude_desktop_config.json");
+function getClaudeDesktopConfigPath(): string {
+  const home = homedir();
+  const os = platform();
+  if (os === "darwin") {
+    return join(
+      home,
+      "Library",
+      "Application Support",
+      "Claude",
+      "claude_desktop_config.json",
+    );
+  }
+  if (os === "win32") {
+    const appData = process.env.APPDATA || join(home, "AppData", "Roaming");
+    return join(appData, "Claude", "claude_desktop_config.json");
+  }
+  return join(home, ".config", "Claude", "claude_desktop_config.json");
+}
 
-const MCP_CONFIG = {
-  mcpServers: {
-    "memory-mcp": {
-      command: "npx",
-      args: ["-y", "@jamesanz/memory-mcp"],
-    },
+const MCP_SERVER_ENTRY = {
+  "memory-mcp": {
+    command: "npx",
+    args: ["-y", "@jamesanz/memory-mcp"],
   },
 };
 
+function updateConfigFile(configFile: string, label: string) {
+  const dir = dirname(configFile);
+  if (!existsSync(dir)) {
+    mkdirSync(dir, { recursive: true });
+  }
+
+  let existingConfig: any = {};
+  if (existsSync(configFile)) {
+    try {
+      existingConfig = JSON.parse(readFileSync(configFile, "utf8")) || {};
+    } catch {
+      existingConfig = {};
+    }
+  }
+
+  const mergedConfig = {
+    ...existingConfig,
+    mcpServers: {
+      ...(existingConfig.mcpServers || {}),
+      ...MCP_SERVER_ENTRY,
+    },
+  };
+
+  writeFileSync(configFile, JSON.stringify(mergedConfig, null, 2));
+  console.log(`Updated ${label}: ${configFile}`);
+}
+
 function setupClaudeConfig() {
   try {
-    console.log("Setting up Claude Desktop configuration for memory-mcp...");
+    console.log("Setting up Claude configuration for memory-mcp...");
 
-    if (!existsSync(CONFIG_DIR)) {
-      mkdirSync(CONFIG_DIR, { recursive: true });
-      console.log(`Created Claude config directory: ${CONFIG_DIR}`);
+    // 1. Claude Desktop config
+    const desktopConfig = getClaudeDesktopConfigPath();
+    updateConfigFile(desktopConfig, "Claude Desktop config");
+
+    // 2. Claude Code CLI config (~/.claude.json) if present
+    const claudeCodeConfig = join(homedir(), ".claude.json");
+    if (existsSync(claudeCodeConfig)) {
+      updateConfigFile(claudeCodeConfig, "Claude Code config");
     }
 
-    let existingConfig: any = {};
-    if (existsSync(CONFIG_FILE)) {
-      try {
-        existingConfig = JSON.parse(readFileSync(CONFIG_FILE, "utf8")) || {};
-        console.log("Found existing Claude configuration");
-      } catch {
-        console.log(
-          "Existing config file found but could not be parsed, will create new one",
-        );
-        existingConfig = {};
-      }
-    }
-
-    const mergedConfig = {
-      ...existingConfig,
-      mcpServers: {
-        ...(existingConfig.mcpServers || {}),
-        ...MCP_CONFIG.mcpServers,
-      },
-    };
-
-    writeFileSync(CONFIG_FILE, JSON.stringify(mergedConfig, null, 2));
-
-    console.log("Claude Desktop configuration updated successfully!");
-    console.log(`Config file location: ${CONFIG_FILE}`);
-    console.log("");
-    console.log("Next steps:");
-    console.log("1. Restart Claude Desktop to load the new MCP server");
-    console.log('2. You should see "memory-mcp" available in Claude Desktop');
-    console.log("3. Start using knowledge graph memory and context caching!");
     console.log("");
     console.log("Available tools:");
     console.log("- store-graph-memory, query-memory, remove-graph-entities");
