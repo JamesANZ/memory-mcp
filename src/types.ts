@@ -1,10 +1,8 @@
-import { ObjectId } from "mongodb";
-
 // Basic memory types
 export type ContextType = "active" | "archived" | "summary";
 
 export interface Memory {
-  _id?: ObjectId;
+  _id?: string;
   memories: string[];
   timestamp: Date;
   llm: string;
@@ -14,10 +12,48 @@ export interface Memory {
   contextType?: ContextType;
   relevanceScore?: number; // 0-1
   tags?: string[];
-  parentContextId?: ObjectId; // Reference to original content for summaries
+  parentContextId?: string; // Reference to original content for summaries
   messageIndex?: number; // Order within conversation
   wordCount?: number;
   summaryText?: string;
+}
+
+// Knowledge Graph types
+export interface GraphEntityInput {
+  name: string;
+  entityType: string;
+  observations: string[];
+}
+
+export interface GraphRelationInput {
+  from: string;
+  to: string;
+  relationType: string;
+  weight?: number;
+}
+
+export interface ScoredEntity {
+  name: string;
+  entityType: string;
+  observations: string[];
+  score: number;
+  hopDistance: number;
+}
+
+export interface GraphTriple {
+  from: string;
+  fromType: string;
+  relationType: string;
+  to: string;
+  toType: string;
+  weight: number;
+}
+
+export interface SubgraphResult {
+  query: string;
+  entities: ScoredEntity[];
+  relations: GraphTriple[];
+  relevantChunks: Memory[];
 }
 
 // Orchestration types

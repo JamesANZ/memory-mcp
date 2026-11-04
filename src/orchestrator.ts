@@ -4,6 +4,7 @@ import {
   retrieveContext,
   scoreRelevance,
   createSummary,
+  queryKnowledgeGraph,
 } from "./db.js";
 import {
   ConversationState,
@@ -110,7 +111,7 @@ export class ConversationOrchestrator {
   }
 
   /**
-   * Determine if archived content should be retrieved
+   * Determine if archived content should be retrieved using semantic vector + graph search
    */
   private async shouldRetrieve(
     state: ConversationState,
@@ -125,17 +126,27 @@ export class ConversationOrchestrator {
       };
     }
 
-    // Score relevance of archived content
     const currentContextText = state.currentContext.join(" ");
     await scoreRelevance(state.conversationId, currentContextText, state.llm);
 
-    // Retrieve most relevant archived content
+    // Retrieve most relevant archived content via vector score + graph subgraph chunks
     const relevantContext = await retrieveContext(
       state.conversationId,
-      undefined, // no tag filter
-      0.2, // minimum relevance score
-      5, // limit to 5 items
+      undefined,
+      0.2,
+      5,
     );
+
+    if (relevantContext.length === 0 && currentContextText.trim()) {
+      const subgraph = await queryKnowledgeGraph(currentContextText, 2, 5, 0.2);
+      if (subgraph.relevantChunks.length > 0) {
+        return {
+          shouldRetrieve: true,
+          contextToRetrieve: subgraph.relevantChunks,
+          reason: `Context usage at ${(usageRatio * 100).toFixed(1)}%, retrieved ${subgraph.relevantChunks.length} graph-connected items`,
+        };
+      }
+    }
 
     if (relevantContext.length === 0) {
       return {
@@ -260,21 +271,21 @@ export class ConversationOrchestrator {
 
     if (usageRatio > 0.9) {
       recommendations.push(
-        "⚠️ Context window nearly full - consider archiving more content",
+        "Context window nearly full - consider archiving more content",
       );
     } else if (usageRatio > 0.7) {
       recommendations.push(
-        "📝 Consider archiving older messages to free up space",
+        "Consider archiving older messages to free up space",
       );
     } else if (usageRatio < 0.2) {
       recommendations.push(
-        "🔍 Context window has space - consider retrieving relevant archived content",
+        "Context window has space - consider retrieving relevant archived content",
       );
     }
 
     if (state.archivedContext.length > 20) {
       recommendations.push(
-        "📋 Consider creating summaries of archived content",
+        "Consider creating summaries of archived content",
       );
     }
 
@@ -288,7 +299,6 @@ export class ConversationOrchestrator {
     const allText = messages.join(" ").toLowerCase();
     const tags: string[] = [];
 
-    // Simple keyword-based tagging
     const keywords = [
       "code",
       "programming",
@@ -319,7 +329,6 @@ export class ConversationOrchestrator {
       }
     }
 
-    // Add timestamp-based tag
     const hour = new Date().getHours();
     if (hour < 12) tags.push("morning");
     else if (hour < 18) tags.push("afternoon");
@@ -350,7 +359,6 @@ export class ConversationOrchestrator {
   }
 }
 
-// Re-export types for convenience
 export {
   ConversationState,
   ArchiveDecision,

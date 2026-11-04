@@ -23,12 +23,14 @@
     "mcp",
     "model-context-protocol",
     "memory",
+    "knowledge-graph",
+    "graphrag",
+    "kuzudb",
+    "cypher",
     "llm",
     "claude",
     "chatgpt",
-    "mongodb",
-    "context-caching",
-    "shared-memories"
+    "context-caching"
   ],
   "author": "James Sangalli",
   "license": "MIT",
@@ -45,8 +47,9 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
+    "@huggingface/transformers": "^4.3.2",
     "@modelcontextprotocol/sdk": "^1.15.0",
-    "mongodb": "^6.3.0",
+    "kuzu": "^0.11.3",
     "zod": "^3.25.75"
   },
   "devDependencies": {
