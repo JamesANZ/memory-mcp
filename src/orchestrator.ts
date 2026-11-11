@@ -11,6 +11,7 @@ import {
   ArchiveDecision,
   RetrievalDecision,
 } from "./types.js";
+import { countContextWords } from "./words.js";
 
 export class ConversationOrchestrator {
   private conversations: Map<string, ConversationState> = new Map();
@@ -33,8 +34,6 @@ export class ConversationOrchestrator {
       const state: ConversationState = {
         conversationId,
         currentContext: [],
-        archivedContext: [],
-        summaries: [],
         totalWordCount: 0,
         maxWordCount: this.maxWordCount,
         llm,
@@ -65,9 +64,8 @@ export class ConversationOrchestrator {
       userId,
     );
 
-    // Add message to current context
     state.currentContext.push(message);
-    state.totalWordCount += this.getWordCount(message);
+    this.syncWordCount(state);
 
     // Check if we need to archive
     const archiveDecision = await this.shouldArchive(state);
@@ -181,16 +179,10 @@ export class ConversationOrchestrator {
       state.userId,
     );
 
-    // Remove archived messages from current context
-    const archivedWordCount = decision.messagesToArchive.reduce(
-      (sum, msg) => sum + this.getWordCount(msg),
-      0,
-    );
-
     state.currentContext = state.currentContext.slice(
       decision.messagesToArchive.length,
     );
-    state.totalWordCount -= archivedWordCount;
+    this.syncWordCount(state);
 
     console.log(
       `Archived ${archivedCount} messages for conversation ${state.conversationId}`,
@@ -209,9 +201,9 @@ export class ConversationOrchestrator {
     // Add retrieved context to current context
     for (const item of decision.contextToRetrieve) {
       const content = item.memories.join(" ");
-      state.currentContext.unshift(content); // Add to beginning
-      state.totalWordCount += this.getWordCount(content);
+      state.currentContext.unshift(content);
     }
+    this.syncWordCount(state);
 
     console.log(
       `Retrieved ${decision.contextToRetrieve.length} items for conversation ${state.conversationId}`,
@@ -283,12 +275,6 @@ export class ConversationOrchestrator {
       );
     }
 
-    if (state.archivedContext.length > 20) {
-      recommendations.push(
-        "Consider creating summaries of archived content",
-      );
-    }
-
     return { state, recommendations };
   }
 
@@ -337,11 +323,9 @@ export class ConversationOrchestrator {
     return tags.length > 0 ? tags : ["general"];
   }
 
-  /**
-   * Get word count of text
-   */
-  private getWordCount(text: string): number {
-    return text.split(/\s+/).length;
+  /** Keep `totalWordCount` equal to the messages still in context. */
+  private syncWordCount(state: ConversationState): void {
+    state.totalWordCount = countContextWords(state.currentContext);
   }
 
   /**

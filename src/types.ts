@@ -60,8 +60,7 @@ export interface SubgraphResult {
 export interface ConversationState {
   conversationId: string;
   currentContext: string[];
-  archivedContext: Memory[];
-  summaries: Memory[];
+  /** Word count of `currentContext`. Recomputed from those messages, never incremented on its own. */
   totalWordCount: number;
   maxWordCount: number;
   llm: string;
